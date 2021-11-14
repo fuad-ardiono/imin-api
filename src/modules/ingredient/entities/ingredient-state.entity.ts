@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { IngredientStateSuperRaw } from './ingredient-state-super-raw.entity';
 
 @Entity({ name: 'ingredient_state' })
 export class IngredientState {
@@ -13,6 +15,12 @@ export class IngredientState {
 
   @Column({ name: 'name' })
   name: string;
+
+  @OneToMany(
+    () => IngredientStateSuperRaw,
+    (ingredientSuperRaw) => ingredientSuperRaw.ingredientState,
+  )
+  ingredientSuperRaw: IngredientStateSuperRaw[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

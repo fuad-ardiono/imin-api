@@ -109,8 +109,13 @@ export class IngredientService {
   }
 
   async ingredientStateDetail(id: number): Promise<IngredientState> {
-    const ingredientStateRecord =
-      await this.findOneByIdAndDeletedAtIsNullIngredientState(id);
+    const ingredientStateRecord = await this.ingredientStateRepository.findOne({
+      relations: ['ingredientSuperRaw'],
+      where: {
+        id,
+        deletedAt: IsNull(),
+      },
+    });
 
     if (!ingredientStateRecord) {
       throw new NotFoundException('ingredient state not found');
@@ -159,6 +164,12 @@ export class IngredientService {
       this.ingredientStateSuperRawRepository.save(ingredientStateSuperRaw);
     });
 
-    return ingredientStateRecord;
+    return this.ingredientStateRepository.findOne({
+      relations: ['ingredientSuperRaw'],
+      where: {
+        id: assignSuperRawIngredientStateDto.ingredientStateId,
+        deletedAt: IsNull(),
+      },
+    });
   }
 }
