@@ -110,7 +110,7 @@ export class IngredientService {
 
   async ingredientStateDetail(id: number): Promise<IngredientState> {
     const ingredientStateRecord = await this.ingredientStateRepository.findOne({
-      relations: ['ingredientSuperRaw'],
+      relations: ['ingredientSuperRaw', 'ingredientSuperRaw.superRaw'],
       where: {
         id,
         deletedAt: IsNull(),
@@ -165,7 +165,7 @@ export class IngredientService {
     });
 
     return this.ingredientStateRepository.findOne({
-      relations: ['ingredientSuperRaw'],
+      relations: ['ingredientSuperRaw', 'ingredientSuperRaw.superRaw'],
       where: {
         id: assignSuperRawIngredientStateDto.ingredientStateId,
         deletedAt: IsNull(),
