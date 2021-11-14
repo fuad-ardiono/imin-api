@@ -13,8 +13,12 @@ export class MeasurementUnitService {
     private readonly measurementUnitRepository: Repository<MeasurementUnit>,
   ) {}
 
-  findOneById(id: number): Promise<MeasurementUnit> {
+  findOneByIdDeletedAtNull(id: number): Promise<MeasurementUnit> {
     return this.measurementUnitRepository.findOne({ id, deletedAt: IsNull() });
+  }
+
+  findOneById(id: number): Promise<MeasurementUnit> {
+    return this.measurementUnitRepository.findOne({ id });
   }
 
   findByDeletedAtNull(): Promise<MeasurementUnit[]> {
@@ -36,7 +40,7 @@ export class MeasurementUnitService {
     id: number,
     updateMeasurementUnitDto: UpdateMeasurementUnitDto,
   ): Promise<MeasurementUnit> {
-    const measurementUnitRecord = await this.findOneById(id);
+    const measurementUnitRecord = await this.findOneByIdDeletedAtNull(id);
 
     if (!measurementUnitRecord) {
       throw new NotFoundException('measurement unit not found');
@@ -49,11 +53,11 @@ export class MeasurementUnitService {
 
     await this.measurementUnitRepository.update({ id }, updatedMeasurementUnit);
 
-    return this.findOneById(id);
+    return this.findOneByIdDeletedAtNull(id);
   }
 
   async delete(id: number): Promise<MeasurementUnit> {
-    const measurementUnitRecord = await this.findOneById(id);
+    const measurementUnitRecord = await this.findOneByIdDeletedAtNull(id);
 
     if (!measurementUnitRecord) {
       throw new NotFoundException('measurement unit not found');
@@ -71,6 +75,12 @@ export class MeasurementUnitService {
   }
 
   async detail(id: number): Promise<MeasurementUnit> {
-    return this.findOneById(id)
+    const measurementUnitRecord = await this.findOneByIdDeletedAtNull(id);
+
+    if (!measurementUnitRecord) {
+      throw new NotFoundException('measurement unit not found');
+    }
+
+    return measurementUnitRecord;
   }
 }

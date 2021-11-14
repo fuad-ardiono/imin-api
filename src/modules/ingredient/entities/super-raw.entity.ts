@@ -6,16 +6,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'measurement_unit' })
-export class MeasurementUnit {
+@Entity({ name: 'super_raw' })
+export class SuperRaw {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ name: 'name' })
   name: string;
-
-  @Column({ name: 'precision' })
-  precision: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

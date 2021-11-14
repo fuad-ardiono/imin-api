@@ -1,14 +1,14 @@
 import {
   Body,
-  Controller,
+  Controller, Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Put,
-  UseGuards,
-} from '@nestjs/common';
+  UseGuards
+} from "@nestjs/common";
 import { MeasurementUnitService } from './measurement-unit.service';
 import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
 import { UpdateMeasurementUnitDto } from './dto/update-measurement-unit.dto';
@@ -46,5 +46,11 @@ export class MeasurementUnitController {
   @HttpCode(HttpStatus.OK)
   async detail(@Param('id') id: number) {
     return this.measurementUnitService.findOneById(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param('id') id: number) {
+    return this.measurementUnitService.delete(id);
   }
 }
