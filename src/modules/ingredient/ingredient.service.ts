@@ -46,7 +46,12 @@ export class IngredientService {
   }
 
   async findByDeletedAtIsNullIngredientState(): Promise<IngredientState[]> {
-    return this.ingredientStateRepository.find({ deletedAt: IsNull() });
+    return this.ingredientStateRepository.find({
+      relations: ['ingredientSuperRaw'],
+      where: {
+        deletedAt: IsNull(),
+      },
+    });
   }
 
   async listSuperRaw(): Promise<SuperRaw[]> {
