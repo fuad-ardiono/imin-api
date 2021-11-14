@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from "typeorm";
 import * as jwt from 'jsonwebtoken';
 import { SignInUserDto, SignInUserResponseDto } from './dto/signin-user.dto';
 import { compareSync, hashSync } from 'bcrypt';
-import { UnauthorizedException } from '../exceptions/unauthorized.exception';
+import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
 import { SignUpUserDto } from './dto/signup-user.dto';
 
 const SECRET = 'af7e2eb1-e3e9-49c9-9191-f2ad0420bad0';
@@ -18,11 +18,11 @@ export class UserService {
   ) {}
 
   async findOneByUsername(username: string): Promise<User> {
-    return this.userRepository.findOne({ username });
+    return this.userRepository.findOne({ username, deletedAt: IsNull() });
   }
 
   async findOneById(id: number): Promise<User> | null {
-    return this.userRepository.findOne({ id });
+    return this.userRepository.findOne({ id, deletedAt: IsNull() });
   }
 
   async decodeUser(token: string): Promise<User> | null {

@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { UserService } from '../user/user.service';
-import { User } from '../user/entities/user.entity';
+import { UserService } from '../modules/user/user.service';
+import { User } from '../modules/user/entities/user.entity';
 import { UnauthorizedException } from '../exceptions/unauthorized.exception';
 
 @Injectable()
