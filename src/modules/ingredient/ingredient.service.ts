@@ -12,6 +12,9 @@ import { UpdateIngredientStateDto } from './dto/update-ingredient-state.dto';
 import { NotFoundException } from '../../exceptions/notfound.exception';
 import { AssignSuperRawIngredientStateDto } from './dto/assign-super-raw-ingredient-state.dto';
 import { AppException } from '../../exceptions/app.exception';
+import { CreateIngredientTypeDto } from './dto/create-ingredient-type.dto';
+import { UpdateIngredientTypeDto } from './dto/update-ingredient-type.dto';
+import { AssignSeafoodIngredientTypeDto } from './dto/assign-seafood-ingredient-type.dto';
 
 @Injectable()
 export class IngredientService {
@@ -54,6 +57,25 @@ export class IngredientService {
     });
   }
 
+  async findOneByIdAndDeletedAtIsNullIngredientType(
+    id: number,
+  ): Promise<IngredientType> {
+    return this.ingredientTypeRepository.findOne({ id, deletedAt: IsNull() });
+  }
+
+  async findByDeletedAtIsNullIngredientType(): Promise<IngredientType[]> {
+    return this.ingredientTypeRepository.find({
+      relations: ['ingredientTypeSeafood'],
+      where: {
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async findOneByIdIngredientType(id: number): Promise<IngredientType> {
+    return this.ingredientTypeRepository.findOne({ id });
+  }
+
   async listSuperRaw(): Promise<SuperRaw[]> {
     return this.superRawRepository.find({ deletedAt: IsNull() });
   }
@@ -64,6 +86,10 @@ export class IngredientService {
 
   async listSeafood(): Promise<Seafood[]> {
     return this.seafoodRepository.find({ deletedAt: IsNull() });
+  }
+
+  async findOneSeafood(id: number): Promise<SuperRaw> {
+    return this.superRawRepository.findOne({ id });
   }
 
   async createIngredientState(
@@ -149,7 +175,7 @@ export class IngredientService {
     });
 
     if (nullSuperRawList.length > 0) {
-      throw new AppException('invalid super raw record');
+      throw new AppException('invalid super raw');
     }
 
     const ingredientStateRecord =
@@ -161,18 +187,140 @@ export class IngredientService {
       throw new AppException('invalid ingredient state');
     }
 
+    const ingredientStateSuperRawPromises = [];
     superRawList.forEach((superRaw) => {
       const ingredientStateSuperRaw = new IngredientStateSuperRaw();
       ingredientStateSuperRaw.ingredientState = ingredientStateRecord;
       ingredientStateSuperRaw.superRaw = superRaw;
 
-      this.ingredientStateSuperRawRepository.save(ingredientStateSuperRaw);
+      ingredientStateSuperRawPromises.push(
+        this.ingredientStateSuperRawRepository.save(ingredientStateSuperRaw),
+      );
     });
+
+    await Promise.all(ingredientStateSuperRawPromises);
 
     return this.ingredientStateRepository.findOne({
       relations: ['ingredientSuperRaw', 'ingredientSuperRaw.superRaw'],
       where: {
         id: assignSuperRawIngredientStateDto.ingredientStateId,
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async createIngredientType(
+    createIngredientTypeDto: CreateIngredientTypeDto,
+  ): Promise<IngredientType> {
+    const newIngredientType = Object.assign(
+      new IngredientType(),
+      createIngredientTypeDto,
+    );
+
+    return this.ingredientTypeRepository.save(newIngredientType);
+  }
+
+  async updateIngredientType(
+    id: number,
+    updateIngredientTypeDto: UpdateIngredientTypeDto,
+  ): Promise<IngredientType> {
+    const ingredientTypeRecord =
+      await this.findOneByIdAndDeletedAtIsNullIngredientType(id);
+
+    if (!ingredientTypeRecord) {
+      throw new NotFoundException('ingredient type not found');
+    }
+
+    const updateIngredientType = Object.assign(
+      ingredientTypeRecord,
+      updateIngredientTypeDto,
+    );
+
+    await this.ingredientTypeRepository.update({ id }, updateIngredientType);
+
+    return this.findOneByIdAndDeletedAtIsNullIngredientType(id);
+  }
+
+  async deleteIngredientType(id: number): Promise<IngredientType> {
+    const ingredientTypeRecord =
+      await this.findOneByIdAndDeletedAtIsNullIngredientType(id);
+
+    if (!ingredientTypeRecord) {
+      throw new NotFoundException('ingredient type not found');
+    }
+
+    ingredientTypeRecord.deletedAt = new Date();
+
+    await this.ingredientTypeRepository.update({ id }, ingredientTypeRecord);
+
+    return this.findOneByIdIngredientType(id);
+  }
+
+  async ingredientTypeDetail(id: number): Promise<IngredientType> {
+    const ingredientTypeRecord = await this.ingredientTypeRepository.findOne({
+      relations: ['ingredientTypeSeafood', 'ingredientTypeSeafood.seafood'],
+      where: {
+        id,
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (!ingredientTypeRecord) {
+      throw new NotFoundException('ingredient type not found');
+    }
+
+    return ingredientTypeRecord;
+  }
+
+  async ingredientTypeList(): Promise<IngredientType[]> {
+    return this.findByDeletedAtIsNullIngredientType();
+  }
+
+  async assignSeafoodIngredientType(
+    assignSeafoodIngredientTypeDto: AssignSeafoodIngredientTypeDto,
+  ): Promise<IngredientType> {
+    const seafoodPromises = [];
+
+    assignSeafoodIngredientTypeDto.seafoodIds.forEach((seafoodId) => {
+      seafoodPromises.push(this.findOneSeafood(seafoodId));
+    });
+
+    const seafoodList: Seafood[] = await Promise.all(seafoodPromises);
+
+    const nullSeafoodList = seafoodList.filter((seafood) => {
+      return seafood == null || false;
+    });
+
+    if (nullSeafoodList.length > 0) {
+      throw new AppException('invalid seafood');
+    }
+
+    const ingredientTypeRecord =
+      await this.findOneByIdAndDeletedAtIsNullIngredientType(
+        assignSeafoodIngredientTypeDto.ingredientTypeId,
+      );
+
+    if (!ingredientTypeRecord) {
+      throw new AppException('invalid ingredient type');
+    }
+
+    const ingredientTypeSeafoodPromises = [];
+    seafoodList.forEach((seafood) => {
+      const newIngredientTypeSeafood = new IngredientTypeSeafood();
+      newIngredientTypeSeafood.ingredientType = ingredientTypeRecord;
+      newIngredientTypeSeafood.seafood = seafood;
+
+      ingredientTypeSeafoodPromises.push(
+        this.ingredientTypeSeafood.save(newIngredientTypeSeafood),
+      );
+    });
+
+    await Promise.all(ingredientTypeSeafoodPromises);
+
+    return this.ingredientTypeRepository.findOne({
+      relations: ['ingredientTypeSeafood', 'ingredientTypeSeafood.seafood'],
+      where: {
+        id: assignSeafoodIngredientTypeDto.ingredientTypeId,
         deletedAt: IsNull(),
       },
     });

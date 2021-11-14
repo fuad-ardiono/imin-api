@@ -15,6 +15,9 @@ import { UserGuard } from '../../guards/user/user.guard';
 import { CreateIngredientStateDto } from './dto/create-ingredient-state.dto';
 import { UpdateIngredientStateDto } from './dto/update-ingredient-state.dto';
 import { AssignSuperRawIngredientStateDto } from './dto/assign-super-raw-ingredient-state.dto';
+import { CreateIngredientTypeDto } from './dto/create-ingredient-type.dto';
+import { UpdateIngredientTypeDto } from './dto/update-ingredient-type.dto';
+import { AssignSeafoodIngredientTypeDto } from './dto/assign-seafood-ingredient-type.dto';
 
 @Controller('ingredient')
 @UseGuards(UserGuard)
@@ -80,6 +83,52 @@ export class IngredientController {
   ) {
     return this.ingredientService.assignSuperRawIngredientState(
       assignSuperRawIngredientStateDto,
+    );
+  }
+
+  @Post('type')
+  @HttpCode(HttpStatus.CREATED)
+  async createType(@Body() createIngredientTypeDto: CreateIngredientTypeDto) {
+    return this.ingredientService.createIngredientType(createIngredientTypeDto);
+  }
+
+  @Put('type/:id')
+  @HttpCode(HttpStatus.OK)
+  async updateType(
+    @Param('id') id: number,
+    @Body() updateIngredientTypeDto: UpdateIngredientTypeDto,
+  ) {
+    return this.ingredientService.updateIngredientType(
+      id,
+      updateIngredientTypeDto,
+    );
+  }
+
+  @Delete('type/:id')
+  @HttpCode(HttpStatus.OK)
+  async deleteType(@Param('id') id: number) {
+    return this.ingredientService.deleteIngredientType(id);
+  }
+
+  @Get('type')
+  @HttpCode(HttpStatus.OK)
+  async indexType() {
+    return this.ingredientService.ingredientTypeList();
+  }
+
+  @Get('type/:id')
+  @HttpCode(HttpStatus.OK)
+  async detailType(@Param('id') id: number) {
+    return this.ingredientService.ingredientTypeDetail(id);
+  }
+
+  @Post('type/assign')
+  @HttpCode(HttpStatus.OK)
+  async typeAssignSeafood(
+    @Body() assignSeafoodIngredientTypeDto: AssignSeafoodIngredientTypeDto,
+  ) {
+    return this.ingredientService.assignSeafoodIngredientType(
+      assignSeafoodIngredientTypeDto,
     );
   }
 }

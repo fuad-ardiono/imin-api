@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { IngredientTypeSeafood } from './ingredient-type-seafood.entity';
 
 @Entity({ name: 'ingredient_type' })
 export class IngredientType {
@@ -13,6 +15,12 @@ export class IngredientType {
 
   @Column({ name: 'name' })
   name: string;
+
+  @OneToMany(
+    () => IngredientTypeSeafood,
+    (ingredientTypeSeafood) => ingredientTypeSeafood.ingredientType,
+  )
+  ingredientTypeSeafood: IngredientTypeSeafood[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
